@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Knowledge Game</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+
+  h1 { font-size: 28px; color: #2e4d38; margin-bottom: 6px; text-align: center; }
+  .subtitle { color: #6c7086; font-size: 14px; margin-bottom: 24px; text-align: center; }
+
+  .card { background: #fff; border-radius: 16px; padding: 36px 40px; max-width: 600px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); border: 1px solid #e0e4ef; }
+
+  .setup h2 { font-size: 22px; color: #2e4d38; margin-bottom: 6px; }
+  .setup p { font-size: 14px; color: #6c7086; margin-bottom: 24px; }
+  .input-group { margin-bottom: 20px; }
+  .input-group label { font-size: 13px; color: #6c7086; display: block; margin-bottom: 6px; font-weight: 600; }
+  .input-group input { width: 100%; border: 1px solid #e0e4ef; border-radius: 8px; padding: 10px 14px; font-size: 15px; color: #1e1e2e; outline: none; }
+  .input-group input:focus { border-color: #2e4d38; }
+
+  .progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-text { font-size: 12px; color: #6c7086; }
+  .score-badge { background: #e8f5ec; color: #2e4d38; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .progress-bar { height: 4px; background: #e0e4ef; border-radius: 4px; margin-bottom: 20px; }
+  .progress-bar-fill { height: 100%; background: #2e4d38; border-radius: 4px; transition: width 0.4s; }
+
+  .category-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 14px; }
+  .cat-command { background: #e8f5ec; color: #2e4d38; }
+  .cat-practice { background: #e8f0ff; color: #5b4fcf; }
+  .cat-concept { background: #fff3e0; color: #e65100; }
+
+  .timer-row { display: flex; justify-content: center; margin-bottom: 16px; }
+  .timer { width: 48px; height: 48px; border-radius: 50%; border: 3px solid #2e4d38; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #2e4d38; }
+  .timer.urgent { border-color: #e94560; color: #e94560; }
+
+  .clue { font-size: 19px; font-weight: 600; color: #1e1e2e; margin-bottom: 8px; line-height: 1.4; }
+  .context { font-size: 13px; color: #6c7086; margin-bottom: 20px; font-style: italic; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .option { background: #f5f7fb; border: 2px solid #e0e4ef; border-radius: 10px; padding: 13px 18px; font-size: 14px; color: #1e1e2e; cursor: pointer; transition: all 0.2s; text-align: left; }
+  .option:hover:not(:disabled) { border-color: #2e4d38; background: #e8f5ec; }
+  .option.correct { border-color: #2e4d38; background: #e8f5ec; color: #2e4d38; font-weight: 700; }
+  .option.wrong { border-color: #e94560; background: #fff0f2; color: #e94560; }
+
+  .feedback { text-align: center; font-size: 15px; font-weight: 600; min-height: 24px; margin-bottom: 16px; }
+  .feedback.correct { color: #2e4d38; }
+  .feedback.wrong { color: #e94560; }
+
+  .btn { background: #2e4d38; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; cursor: pointer; transition: background 0.2s; display: block; margin: 0 auto; width: 100%; }
+  .btn:hover { background: #1a5c38; }
+  .btn:disabled { background: #ccc; cursor: default; }
+
+  .final { text-align: center; }
+  .final .big-score { font-size: 72px; font-weight: 700; color: #2e4d38; line-height: 1; margin: 16px 0 4px; }
+  .final .score-label { font-size: 16px; color: #6c7086; margin-bottom: 24px; }
+  .final .result-msg { font-size: 20px; font-weight: 600; color: #1e1e2e; margin-bottom: 8px; }
+  .result-bar { background: #f5f7fb; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; text-align: left; }
+  .result-row { display: flex; justify-content: space-between; font-size: 14px; color: #6c7086; padding: 4px 0; border-bottom: 1px solid #e0e4ef; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row span:last-child { font-weight: 600; color: #1e1e2e; }
+  .share-text { background: #e8f5ec; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2e4d38; margin-bottom: 20px; font-weight: 600; }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="setupScreen">
+  <h1>🎮 Git Knowledge Game</h1>
+  <p class="subtitle">Commands • Best Practices • Key Concepts</p>
+  <div class="card setup">
+    <h2>Enter your name</h2>
+    <p>Play individually and compare scores with your team!</p>
+    <div class="input-group">
+      <label>Your name</label>
+      <input id="playerName" placeholder="e.g. Maria" onkeydown="if(event.key==='Enter') startGame()" />
+    </div>
+    <button class="btn" onclick="startGame()">Start Game →</button>
+  </div>
+</div>
+
+<div id="gameScreen" class="hidden">
+  <h1>🎮 Git Knowledge Game</h1>
+  <p class="subtitle" id="playerLabel"></p>
+  <div class="card">
+    <div class="progress-row">
+      <div class="progress-text" id="progressText"></div>
+      <div class="score-badge" id="scoreBadge">0 pts</div>
+    </div>
+    <div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="timer-row"><div class="timer" id="timer">15</div></div>
+    <div class="category-badge" id="catBadge"></div>
+    <div class="clue" id="clueText"></div>
+    <div class="context" id="contextText"></div>
+    <div class="options" id="optionsGrid"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>Next →</button>
+  </div>
+</div>
+
+<div id="finalScreen" class="hidden">
+  <h1>🎮 Git Knowledge Game</h1>
+  <p class="subtitle" id="finalPlayerLabel"></p>
+  <div class="card final">
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="big-score" id="bigScore"></div>
+    <div class="score-label" id="scoreLabel"></div>
+    <div class="result-bar" id="resultBar"></div>
+    <div class="share-text" id="shareText"></div>
+    <button class="btn" onclick="restartGame()">Play Again</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { cat:"command", catLabel:"🟢 Git Command", clue:"Download a repository from GitHub to your computer", context:"📌 You want to start working on an existing project", answer:"git clone <url>", options:["git clone <url>","git pull origin main","git download <url>","git init"] },
+  { cat:"command", catLabel:"🟢 Git Command", clue:"Save a snapshot of your changes with a message", context:"📌 You finished a task and want to save your progress", answer:'git commit -m "message"', options:['git commit -m "message"','git save -m "message"','git push -m "message"','git add -m "message"'] },
+  { cat:"command", catLabel:"🟢 Git Command", clue:"Create a new branch and switch to it", context:"📌 You want to start working on a new feature", answer:"git checkout -b branch-name", options:["git checkout -b branch-name","git branch -new branch-name","git create branch-name","git new branch-name"] },
+  { cat:"command", catLabel:"🟢 Git Command", clue:"Upload your local branch to GitHub", context:"📌 You finished your work and want the team to see it", answer:"git push origin branch-name", options:["git push origin branch-name","git upload origin branch-name","git send origin branch-name","git sync origin branch-name"] },
+  { cat:"command", catLabel:"🟢 Git Command", clue:"Download the latest changes from GitHub to your computer", context:"📌 Your teammate just merged something and you want to update", answer:"git pull origin main", options:["git pull origin main","git fetch origin main","git sync origin main","git update origin main"] },
+  { cat:"practice", catLabel:"🔵 Best Practice", clue:"You finished a big feature with 20 changes. What should you do?", context:"📌 Think about what makes the history readable for your team", answer:"Make small commits for each logical change", options:["Make small commits for each logical change","Make one big commit with everything","Push directly to main without committing","Skip the commit message to save time"] },
+  { cat:"practice", catLabel:"🔵 Best Practice", clue:"You want to add a new analysis script. Where should you work?", context:"📌 Think about how to protect the main branch", answer:"Create a new branch and work there", options:["Create a new branch and work there","Work directly on main","Edit files without using Git","Clone the repo every time"] },
+  { cat:"practice", catLabel:"🔵 Best Practice", clue:"Your script needs an API key. Where do you store it?", context:"📌 Think about security and what should never go to GitHub", answer:"In a .env file that is in .gitignore", options:["In a .env file that is in .gitignore","Directly in the Python script","In the README file","In a commit message"] },
+  { cat:"practice", catLabel:"🔵 Best Practice", clue:"Your teammate wants to merge their branch into main. What should happen first?", context:"📌 Think about the team workflow", answer:"Open a Pull Request and wait for a review", options:["Open a Pull Request and wait for a review","Merge directly without review","Delete the branch and start over","Push directly to main"] },
+  { cat:"practice", catLabel:"🔵 Best Practice", clue:"You have a 2GB dataset. Should you commit it to the repository?", context:"📌 Think about repository size and performance", answer:"No — use cloud storage like S3 or Google Drive", options:["No — use cloud storage like S3 or Google Drive","Yes — commit everything to keep it together","Yes — but only if the file is important","No — just delete the file"] },
+  { cat:"concept", catLabel:"🟠 Key Concept", clue:"What is a Repository?", context:"📌 Think about what Git tracks", answer:"A project folder tracked by Git with full change history", options:["A project folder tracked by Git with full change history","A backup copy of your files on GitHub","A branch where you store finished work","A type of commit with multiple files"] },
+  { cat:"concept", catLabel:"🟠 Key Concept", clue:"What is a Branch?", context:"📌 Think about why we use them", answer:"A safe separate workspace to make changes without affecting main", options:["A safe separate workspace to make changes without affecting main","A copy of the repository on GitHub","A saved snapshot of your changes","A request to merge your work"] },
+  { cat:"concept", catLabel:"🟠 Key Concept", clue:"What is a Pull Request?", context:"📌 Think about the team workflow", answer:"A request asking teammates to review and merge your changes", options:["A request asking teammates to review and merge your changes","A command to download changes from GitHub","A way to delete a branch after merging","A notification that someone pushed to main"] },
+  { cat:"concept", catLabel:"🟠 Key Concept", clue:"What is a Conflict in Git?", context:"📌 Think about what happens when two people edit the same file", answer:"When two people modify the same part of a file and manual review is needed", options:["When two people modify the same part of a file and manual review is needed","When a commit message is missing","When a branch is too old to merge","When GitHub rejects a push"] },
+  { cat:"concept", catLabel:"🟠 Key Concept", clue:"What is the difference between Push and Pull?", context:"📌 Think about the direction of the data", answer:"Push uploads to GitHub — Pull downloads from GitHub", options:["Push uploads to GitHub — Pull downloads from GitHub","Push downloads from GitHub — Pull uploads to GitHub","They are the same command with different names","Push creates a branch — Pull deletes it"] },
+];
+
+let playerName='', current=0, score=0, answered=false, timerInterval, timeLeft;
+const shuffle = a => [...a].sort(() => Math.random() - 0.5);
+let shuffled = [];
+
+function startGame() {
+  playerName = document.getElementById('playerName').value.trim() || 'Player';
+  shuffled = shuffle(questions);
+  current = 0; score = 0;
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  document.getElementById('playerLabel').textContent = `Good luck, ${playerName}!`;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = shuffled[current];
+  answered = false;
+  document.getElementById('progressText').textContent = `Question ${current+1} of ${shuffled.length}`;
+  document.getElementById('progressFill').style.width = `${(current/shuffled.length)*100}%`;
+  document.getElementById('scoreBadge').textContent = `${score} pts`;
+  document.getElementById('clueText').textContent = q.clue;
+  document.getElementById('contextText').textContent = q.context;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('nextBtn').disabled = true;
+  const badge = document.getElementById('catBadge');
+  badge.textContent = q.catLabel;
+  badge.className = `category-badge cat-${q.cat}`;
+  const opts = shuffle(q.options);
+  document.getElementById('optionsGrid').innerHTML = opts.map(o =>
+    `<button class="option" onclick="answer(this,\`${o}\`,\`${q.answer}\`)">${o}</button>`
+  ).join('');
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 15;
+  const el = document.getElementById('timer');
+  el.textContent = timeLeft;
+  el.className = 'timer';
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    el.textContent = timeLeft;
+    if (timeLeft <= 5) el.className = 'timer urgent';
+    if (timeLeft <= 0) { clearInterval(timerInterval); if (!answered) timeUp(); }
+  }, 1000);
+}
+
+function timeUp() {
+  answered = true;
+  const correct = shuffled[current].answer;
+  document.querySelectorAll('.option').forEach(o => { o.disabled=true; if(o.textContent===correct) o.classList.add('correct'); });
+  const fb = document.getElementById('feedback');
+  fb.textContent = `⏰ Time's up! Answer: ${correct}`;
+  fb.className = 'feedback wrong';
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function answer(btn, selected, correct) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+  document.querySelectorAll('.option').forEach(o => { o.disabled=true; if(o.textContent===correct) o.classList.add('correct'); });
+  const fb = document.getElementById('feedback');
+  if (selected === correct) {
+    btn.classList.add('correct');
+    const bonus = timeLeft >= 10 ? 2 : 1;
+    score += bonus;
+    fb.textContent = timeLeft >= 10 ? '✅ Correct! +2 points (speed bonus!)' : '✅ Correct! +1 point';
+    fb.className = 'feedback correct';
+  } else {
+    btn.classList.add('wrong');
+    fb.textContent = `❌ Wrong! The answer was: ${correct}`;
+    fb.className = 'feedback wrong';
+  }
+  document.getElementById('scoreBadge').textContent = `${score} pts`;
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= shuffled.length) { showFinal(); return; }
+  renderQuestion();
+}
+
+function showFinal() {
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('finalScreen').classList.remove('hidden');
+  document.getElementById('finalPlayerLabel').textContent = playerName;
+  const max = shuffled.length * 2;
+  const pct = Math.round((score/max)*100);
+  const [,title,desc] = [
+    [80,"🏆 Git Master!","Impressive — you really know your Git!"],
+    [50,"💪 Good job!","You know the basics — keep practicing!"],
+    [0,"📚 Keep learning!","Don't worry — practice makes perfect!"],
+  ].find(([t]) => pct >= t);
+  document.getElementById('resultMsg').textContent = title;
+  document.getElementById('bigScore').textContent = score;
+  document.getElementById('scoreLabel').textContent = `out of ${max} possible points`;
+  document.getElementById('resultBar').innerHTML = `
+    <div class="result-row"><span>Score</span><span>${score} / ${max}</span></div>
+    <div class="result-row"><span>Percentage</span><span>${pct}%</span></div>
+    <div class="result-row"><span>Verdict</span><span>${desc}</span></div>
+  `;
+  document.getElementById('shareText').textContent = `📢 Share your score: "${playerName} got ${score}/${max} points!"`;
+}
+
+function restartGame() {
+  document.getElementById('finalScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  document.getElementById('playerName').value = '';
+}
+</script>
+</body>
+</html>
